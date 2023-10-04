@@ -3,6 +3,8 @@ package com.example.weitherapptest.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.weitherapptest.models.CityWeather
+import com.example.weitherapptest.models.WeatherResponse
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -18,7 +20,9 @@ class WeatherViewModel: ViewModel() {
     private val cities = listOf("Rennes", "Paris", "Nantes", "Bordeaux", "Lyon")
     private val _currentWeather = MutableStateFlow("")
 
-    val currentWeather: StateFlow<String> = _currentWeather
+    private val _cityWeatherList = MutableStateFlow(emptyList<CityWeather>())
+    val cityWeatherList: StateFlow<List<CityWeather>> = _cityWeatherList
+
 
     init {
         viewModelScope.launch {
@@ -26,14 +30,25 @@ class WeatherViewModel: ViewModel() {
         }
     }
 
-    private suspend fun fetchWeatherSequentially() {
+    fun startWeatherFetching() {
         viewModelScope.launch {
+            fetchWeatherSequentially()
+        }
+    }
+
+    suspend fun fetchWeatherSequentially() {
+        viewModelScope.launch {
+            val newCityWeatherList = mutableListOf<CityWeather>()
             cities.forEach { city ->
                 val weather = fetchWeatherForCity(city)
-
+                val cityName = weather?.name ?: city
+                val temperature = "${weather?.main?.temp ?: "Non disponible"}"
+                val cloudCover = "${weather?.clouds?.all ?: "Non disponible"}%"
+                newCityWeatherList.add(CityWeather(cityName, temperature, cloudCover))
                 _currentWeather.value = "Météo pour $city : ${weather?.main?.temp ?: "Non disponible"}°C"
                 delay(10000)
             }
+            _cityWeatherList.value = newCityWeatherList
         }
     }
 
@@ -61,25 +76,12 @@ class WeatherViewModel: ViewModel() {
         }
     }
 
-    data class WeatherResponse(
-        val name: String,  // Nom de la ville
-        val main: MainData,
-        val clouds: CloudsData
-    )
-
-    data class MainData(
-        val temp: Float,  // Température en Kelvin
-        val humidity: Int  // Humidité en pourcentage
-    )
-
-    data class CloudsData(
-        val all: Int  // Couverture nuageuse en pourcentage
-    )
-
-    data class CityWeather(
-        val cityName: String,         // Nom de la ville
-        val temperature: String,      // Température en Celsius
-        val cloudCover: String,       // Couverture nuageuse en pourcentage
-        val humidity: String? = null  // Humidité en pourcentage (optionnel)
-    )
+     fun resetCityWeatherData() {
+        viewModelScope.launch {
+            _cityWeatherList.value = emptyList()
+        }
+    }
 }
+
+
+

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.weitherapptest"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.weitherapptest"
@@ -50,6 +50,7 @@ android {
 }
 
 dependencies {
+    implementation ("androidx.compose.material:material-icons-core:1.5.2")
     implementation ("com.squareup.okhttp3:okhttp:4.9.1")
     implementation ("com.google.code.gson:gson:2.8.6")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
